@@ -15,7 +15,7 @@ class AgenticAct {
    * @param {string} [config.baseUrl]
    * @param {string} [config.model]
    * @param {Array<Action>} config.actions - 注册的可选行动
-   * @param {string} [config.systemPrompt] - 自定义决策 prompt（覆盖默认）
+   * @param {string} [config.prompt] - 路由准则（告诉 AI 怎么思考、怎么选）
    */
   constructor(config) {
     this.provider = config.provider || 'openai';
@@ -23,7 +23,7 @@ class AgenticAct {
     this.baseUrl = config.baseUrl;
     this.model = config.model || (this.provider === 'anthropic' ? 'claude-sonnet-4-20250514' : 'gpt-4o');
     this.actions = config.actions || [];
-    this.customSystemPrompt = config.systemPrompt || null;
+    this.prompt = config.prompt || null;
   }
 
   /**
@@ -102,20 +102,22 @@ class AgenticAct {
   // ── Internal ──
 
   _buildSystemPrompt() {
-    if (this.customSystemPrompt) return this.customSystemPrompt;
-
     const actionsDesc = this.actions.map(a => {
       let desc = `- **${a.id}** (${a.name}): ${a.description}`;
       if (a.schema) desc += `\n  参数: ${JSON.stringify(a.schema)}`;
       return desc;
     }).join('\n\n');
 
+    const routingGuidance = this.prompt
+      ? `\n## 路由准则\n\n${this.prompt}\n`
+      : `\n## 决策原则\n\n- 优先不打扰：能不打断就不打断\n- 匹配注意力：用户专注→轻量方式，用户空闲→可以直接\n- 匹配形态：手忙→语音，看屏幕→视觉，走路→简短\n- 紧急覆盖：真正紧急的事可以打断\n`;
+
     return `你是一个行动决策引擎。你接收多模态输入（文字、图片、传感器数据等），根据当前场景从预定义的行动选项中选择最合适的一个，并填写参数。
 
 ## 可选行动
 
 ${actionsDesc}
-
+${routingGuidance}
 ## 输出格式
 
 返回 JSON（不要 markdown 包裹）：
@@ -129,13 +131,6 @@ ${actionsDesc}
     "reason": "什么情况下用备选"
   }
 }
-
-## 决策原则
-
-- 优先不打扰：能不打断就不打断
-- 匹配注意力：用户专注→轻量方式，用户空闲→可以直接
-- 匹配形态：手忙→语音，看屏幕→视觉，走路→简短
-- 紧急覆盖：真正紧急的事可以打断
 
 所有描述用中文。只返回合法 JSON。`;
   }

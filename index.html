@@ -153,6 +153,11 @@ footer a:hover{color:var(--text)}
   <div class="code-block"><span class="kw">const</span> act = <span class="kw">new</span> <span class="fn">AgenticAct</span>({
   provider: <span class="str">'openai'</span>,
   apiKey: <span class="str">'sk-...'</span>,
+
+  <span class="cmt">// 路由准则 — 告诉 AI 怎么思考、怎么选</span>
+  prompt: <span class="str">`他工作时极度讨厌被打断，除非紧急一律静默排队。
+    做饭时喜欢听语音播报。晚上 11 点后不要用语音。`</span>,
+
   actions: [
     {
       id: <span class="str">'voice'</span>,

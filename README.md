@@ -24,6 +24,15 @@ const { AgenticAct } = require('./agentic-act.js')
 const act = new AgenticAct({
   provider: 'openai',
   apiKey: 'sk-...',
+
+  // 路由准则 — 告诉 AI 怎么思考、怎么选
+  prompt: `
+    你是家庭助手，服务一个程序员。
+    他工作时讨厌被打断，除非紧急一律静默排队。
+    他喜欢做饭时听语音播报。
+    晚上 11 点后不要用语音。
+  `,
+
   actions: [
     {
       id: 'voice',
@@ -65,8 +74,8 @@ const result = await act.run({ text: '会议要开始了' })
 | apiKey | string | API 密钥 |
 | baseUrl | string? | 自定义接口地址 |
 | model | string? | 模型名 |
+| prompt | string? | 路由准则（告诉 AI 怎么思考、怎么选） |
 | actions | Action[] | 注册的行动选项 |
-| systemPrompt | string? | 自定义决策 prompt |
 
 ### Action
 

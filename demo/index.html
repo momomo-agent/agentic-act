@@ -96,6 +96,10 @@ select.cfg-input { cursor:pointer; }
     </div>
     <div class="input-body">
       <div class="input-group">
+        <div class="input-label">路由准则 (prompt)</div>
+        <textarea class="input-text" id="routingPrompt" placeholder="你是一个家庭助手，服务对象是程序员。&#10;他工作时极度讨厌被打断...&#10;（可选：不填则用默认准则）" style="min-height:48px;font-size:11px"></textarea>
+      </div>
+      <div class="input-group">
         <div class="input-label">意图 (text)</div>
         <textarea class="input-text" id="intentText" placeholder="外卖到了&#10;会议 5 分钟后开始&#10;该喝水了"></textarea>
       </div>
@@ -253,11 +257,13 @@ function captureImage() {
 }
 
 function createAct() {
+  const promptVal = document.getElementById('routingPrompt').value.trim();
   return new AgenticAct({
     provider: document.getElementById('cfgProvider').value,
     apiKey: document.getElementById('cfgKey').value.trim(),
     baseUrl: document.getElementById('cfgBase').value.trim() || undefined,
     model: document.getElementById('cfgModel').value.trim() || undefined,
+    prompt: promptVal || undefined,
     actions: DEMO_ACTIONS
   });
 }
