@@ -171,71 +171,36 @@ ${actionsDesc}
   }
 
   async _callLLM(system, userContent, images) {
-    if (this.provider === 'anthropic') {
-      return this._callAnthropic(system, userContent, images);
+    // Use agentic-core if available
+    const core = (typeof require !== 'undefined')
+      ? require('./agentic-core.umd.js')
+      : (typeof window !== 'undefined' && window.AgenticCore);
+
+    if (!core || !core.agenticAsk) {
+      throw new Error('agentic-core not found. Include agentic-core.umd.js before agentic-act.js');
     }
-    return this._callOpenAI(system, userContent, images);
-  }
 
-  async _callOpenAI(system, userContent, images) {
-    const url = (this.baseUrl || 'https://api.openai.com/v1') + '/chat/completions';
-    const content = [];
-    if (images.length) {
-      images.forEach(img => {
-        content.push({
-          type: 'image_url',
-          image_url: { url: `data:${img.media_type};base64,${img.data}`, detail: 'low' }
-        });
-      });
-    }
-    content.push({ type: 'text', text: userContent });
+    const imgPayload = images.map(img => ({
+      data: img.data,
+      media_type: img.media_type
+    }));
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.apiKey}` },
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content }
-        ],
-        max_tokens: 1024,
-        temperature: 0.3
-      })
-    });
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || JSON.stringify(data);
-  }
-
-  async _callAnthropic(system, userContent, images) {
-    const url = (this.baseUrl || 'https://api.anthropic.com') + '/v1/messages';
-    const content = [];
-    if (images.length) {
-      images.forEach(img => {
-        content.push({
-          type: 'image',
-          source: { type: 'base64', media_type: img.media_type, data: img.data }
-        });
-      });
-    }
-    content.push({ type: 'text', text: userContent });
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
+    const result = await core.agenticAsk(
+      userContent,
+      {
+        provider: this.provider,
+        apiKey: this.apiKey,
+        baseUrl: this.baseUrl,
         model: this.model,
         system,
-        messages: [{ role: 'user', content }],
-        max_tokens: 1024
-      })
-    });
-    const data = await res.json();
-    return data.content?.[0]?.text || JSON.stringify(data);
+        tools: [],
+        stream: false,
+        ...(imgPayload.length ? { images: imgPayload } : {})
+      },
+      () => {}
+    );
+
+    return typeof result === 'string' ? result : result.answer || JSON.stringify(result);
   }
 }
 
