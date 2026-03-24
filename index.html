@@ -147,44 +147,38 @@ const DEMO_ACTIONS = [
   {
     id: 'voice-speaker',
     name: '🔊 语音播报',
-    description: '通过智能音箱或设备扬声器语音告知',
-    schema: { content: 'string', volume: 'low|normal|high' },
-    when: '用户没在看屏幕，或手忙着，或在做饭/运动'
+    description: '通过智能音箱或设备扬声器语音告知。适合用户没在看屏幕、手忙着、在做饭或运动的场景',
+    schema: { content: 'string', volume: 'low|normal|high' }
   },
   {
     id: 'screen-notification',
     name: '🖥 屏幕通知',
-    description: '在最近的屏幕上弹出通知卡片',
-    schema: { title: 'string', body: 'string', urgency: 'low|normal|high' },
-    when: '用户在看屏幕，专注但可接受轻量打断'
+    description: '在最近的屏幕上弹出通知卡片。适合用户在看屏幕、专注但可接受轻量打断的场景',
+    schema: { title: 'string', body: 'string', urgency: 'low|normal|high' }
   },
   {
     id: 'chat-message',
     name: '💬 对话消息',
-    description: '在聊天界面发送消息，等待用户回应',
-    schema: { message: 'string' },
-    when: '需要用户确认或回复，用户当前空闲'
+    description: '在聊天界面发送消息并等待用户回应。适合需要用户确认或回复、用户当前空闲的场景',
+    schema: { message: 'string' }
   },
   {
     id: 'ambient-light',
     name: '💡 环境光提示',
-    description: '通过智能灯光颜色/亮度变化传达信息',
-    schema: { color: 'string', pattern: 'pulse|solid|fade', duration: 'number' },
-    when: '不紧急，用户在房间里但不想被直接打扰'
+    description: '通过智能灯光颜色或亮度变化传达信息。适合不紧急、用户在房间但不想被直接打扰的场景',
+    schema: { color: 'string', pattern: 'pulse|solid|fade', duration: 'number' }
   },
   {
     id: 'vibration',
     name: '📳 震动提醒',
-    description: '通过手表或手机震动提醒',
-    schema: { pattern: 'short|long|double', message: 'string' },
-    when: '用户在移动中，或在安静环境不适合出声'
+    description: '通过手表或手机震动提醒。适合用户在移动中或在安静环境不适合出声的场景',
+    schema: { pattern: 'short|long|double', message: 'string' }
   },
   {
     id: 'silent-queue',
     name: '🤫 静默排队',
-    description: '不打扰，存入待办队列等用户空闲时展示',
-    schema: { content: 'string', priority: 'low|normal|high' },
-    when: '用户在演示、开会、或明确不想被打扰'
+    description: '不打扰，存入待办队列等用户空闲时展示。适合用户在演示、开会或明确不想被打扰的场景',
+    schema: { content: 'string', priority: 'low|normal|high' }
   }
 ];
 

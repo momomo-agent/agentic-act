@@ -74,9 +74,8 @@ const result = await act.run({ text: '会议要开始了' })
 |------|------|------|
 | id | string | 唯一标识 |
 | name | string | 显示名 |
-| description | string | 让 LLM 理解这个行动做什么 |
+| description | string | 让 LLM 理解这个行动做什么、什么时候适用 |
 | schema | object? | 参数结构 |
-| when | string? | 适用场景描述（自然语言） |
 | handler | function? | 执行方法，传入 params |
 
 ### `act.decide(input)` → Decision

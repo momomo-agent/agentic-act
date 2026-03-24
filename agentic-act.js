@@ -106,7 +106,6 @@ class AgenticAct {
 
     const actionsDesc = this.actions.map(a => {
       let desc = `- **${a.id}** (${a.name}): ${a.description}`;
-      if (a.when) desc += `\n  适用场景: ${a.when}`;
       if (a.schema) desc += `\n  参数: ${JSON.stringify(a.schema)}`;
       return desc;
     }).join('\n\n');
