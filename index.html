@@ -3,408 +3,254 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>agentic-act demo</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<title>agentic-act — AI Intent Execution Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-:root {
-  --bg:#0a0a0b; --surface:rgba(255,255,255,0.03); --surface2:rgba(255,255,255,0.06);
-  --border:rgba(255,255,255,0.06); --text:rgba(255,255,255,0.85);
-  --text2:rgba(255,255,255,0.45); --text3:rgba(255,255,255,0.25);
-  --accent:#818cf8; --green:#4ade80; --warm:#fb923c;
-  --mono:'JetBrains Mono',monospace; --sans:'DM Sans',-apple-system,sans-serif;
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080a;--surface:rgba(255,255,255,0.025);--border:rgba(255,255,255,0.05);
+  --text:rgba(255,255,255,0.88);--text2:rgba(255,255,255,0.45);--text3:rgba(255,255,255,0.2);
+  --accent:#818cf8;--accent2:#a78bfa;--green:#4ade80;--warm:#fb923c;
+  --serif:'Instrument Serif',Georgia,serif;--mono:'Space Mono',monospace;
 }
-body { background:var(--bg); color:var(--text); font-family:var(--sans); height:100vh; overflow:hidden; }
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-.app { display:grid; grid-template-columns:1fr 2fr; height:100vh; }
+/* ── Noise overlay ── */
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
 
-/* Left: Input */
-.input-panel { display:flex; flex-direction:column; border-right:1px solid var(--border); }
-.panel-bar { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
-.panel-bar h2 { font-size:12px; font-weight:500; flex:1; }
-.badge { padding:2px 8px; border-radius:8px; font-size:9px; font-family:var(--mono); }
-.badge-purple { color:var(--accent); background:rgba(129,140,248,0.1); border:1px solid rgba(129,140,248,0.2); }
+/* ── Hero ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 10vw;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(129,140,248,0.06);border:1px solid rgba(129,140,248,0.12);border-radius:20px;font-size:11px;color:var(--accent);margin-bottom:32px;width:fit-content}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-family:var(--serif);font-size:clamp(48px,8vw,96px);font-weight:400;line-height:1.05;letter-spacing:-0.02em;max-width:900px}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero .subtitle{font-size:14px;color:var(--text2);max-width:520px;line-height:1.8;margin-top:28px}
+.hero-actions{display:flex;gap:12px;margin-top:36px}
+.hero-actions a{display:inline-flex;align-items:center;gap:6px;padding:10px 22px;border-radius:6px;font-size:12px;font-family:var(--mono);text-decoration:none;transition:all 0.2s}
+.hero-actions .primary{background:var(--accent);color:#000;border:none}
+.hero-actions .primary:hover{background:var(--accent2)}
+.hero-actions .secondary{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.hero-actions .secondary:hover{border-color:rgba(255,255,255,0.15);color:var(--text)}
 
-.input-body { flex:1; display:flex; flex-direction:column; padding:14px; gap:10px; overflow-y:auto; }
+/* Floating glow */
+.hero::after{content:'';position:absolute;top:20%;right:5%;width:400px;height:400px;background:radial-gradient(circle,rgba(129,140,248,0.06) 0%,transparent 70%);pointer-events:none;border-radius:50%}
 
-.input-group { }
-.input-label { font-size:9px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-.input-text { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:10px; font-size:13px; font-family:var(--sans); outline:none; resize:none; min-height:60px; }
-.input-text:focus { border-color:rgba(255,255,255,0.15); }
-.input-text::placeholder { color:var(--text3); }
+/* ── Section ── */
+section{padding:100px 10vw}
+.section-label{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:3px;margin-bottom:12px}
+.section-title{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:400;margin-bottom:40px}
 
-.image-area { width:100%; aspect-ratio:16/9; background:var(--surface); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; position:relative; }
-.image-area .placeholder { color:var(--text3); font-size:11px; text-align:center; }
-.image-area img { width:100%; height:100%; object-fit:cover; }
-.image-area video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+/* ── Core concept ── */
+.concept{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.concept-text{font-size:13px;color:var(--text2);line-height:2}
+.concept-text strong{color:var(--text);font-weight:700}
+.concept-diagram{position:relative;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.flow-step{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.flow-step:last-child{border-bottom:none}
+.flow-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.flow-icon.input{background:rgba(129,140,248,0.08);border:1px solid rgba(129,140,248,0.15)}
+.flow-icon.decide{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.15)}
+.flow-icon.output{background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.15)}
+.flow-label{font-size:11px;color:var(--text)}
+.flow-desc{font-size:10px;color:var(--text3)}
+.flow-arrow{text-align:center;color:var(--text3);font-size:10px;padding:4px 0}
 
-.source-switch { display:flex; gap:4px; margin-bottom:6px; }
-.source-switch button { padding:3px 10px; font-size:9px; border-radius:5px; border:1px solid var(--border); background:transparent; color:var(--text3); cursor:pointer; font-family:var(--sans); }
-.source-switch button.active { background:var(--surface2); color:var(--text); }
+/* ── Code block ── */
+.code-section{background:rgba(255,255,255,0.015);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.code-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0}
+.code-tab{padding:10px 20px;font-size:11px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.code-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.code-block{font-family:var(--mono);font-size:12px;line-height:1.9;color:var(--text2);white-space:pre;overflow-x:auto;padding:30px 0}
+.code-block .kw{color:var(--accent)}
+.code-block .str{color:var(--green)}
+.code-block .cmt{color:var(--text3);font-style:italic}
+.code-block .fn{color:var(--warm)}
 
-.cfg-row { display:flex; gap:6px; }
-.cfg-input { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:5px; color:var(--text); padding:5px 8px; font-size:10px; font-family:var(--mono); outline:none; }
-.cfg-input::placeholder { color:var(--text3); }
-select.cfg-input { cursor:pointer; }
+/* ── Features grid ── */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px 24px;transition:all 0.3s}
+.feature-card:hover{border-color:rgba(255,255,255,0.1);transform:translateY(-2px)}
+.feature-card .fc-icon{font-size:24px;margin-bottom:14px}
+.feature-card .fc-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.feature-card .fc-desc{font-size:11px;color:var(--text3);line-height:1.7}
 
-.input-controls { padding:10px 14px; border-top:1px solid var(--border); display:flex; gap:6px; }
-.btn { flex:1; padding:9px; border-radius:6px; font-size:11px; font-family:var(--sans); font-weight:500; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text); transition:all 0.2s; }
-.btn:hover { background:var(--surface2); }
-.btn.primary { background:rgba(129,140,248,0.1); border-color:rgba(129,140,248,0.2); color:var(--accent); }
-.btn.primary:hover { background:rgba(129,140,248,0.18); }
+/* ── Philosophy ── */
+.philosophy{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.phil-card{padding:32px;border-left:2px solid var(--border)}
+.phil-card .phil-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.phil-card .phil-title{font-family:var(--serif);font-size:22px;margin-bottom:10px}
+.phil-card .phil-desc{font-size:11px;color:var(--text2);line-height:1.8}
+.phil-card.highlight{border-left-color:var(--accent)}
 
-/* Right: Pipeline */
-.pipeline-panel { display:flex; flex-direction:column; overflow:hidden; }
-.pipeline-body { flex:1; display:flex; flex-direction:column; padding:14px; gap:10px; overflow-y:auto; }
-.pipeline-body::-webkit-scrollbar { width:2px; }
-.pipeline-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.06); }
+/* ── Footer ── */
+footer{padding:60px 10vw;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+footer .logo{font-family:var(--serif);font-size:18px;font-style:italic}
+footer .links{display:flex;gap:20px}
+footer a{font-size:11px;color:var(--text3);text-decoration:none}
+footer a:hover{color:var(--text)}
 
-/* Pipeline steps */
-.step { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; transition:all 0.3s; }
-.step.active { border-color:rgba(129,140,248,0.3); }
-.step.done { border-color:rgba(74,222,128,0.2); }
-.step-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-.step-num { width:20px; height:20px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; font-family:var(--mono); color:var(--text3); flex-shrink:0; }
-.step.active .step-num { background:rgba(129,140,248,0.1); border-color:rgba(129,140,248,0.3); color:var(--accent); }
-.step.done .step-num { background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--green); }
-.step-title { font-size:11px; font-weight:500; flex:1; }
-.step-status { font-size:8px; font-family:var(--mono); color:var(--text3); }
-.step.active .step-status { color:var(--accent); }
-.step.done .step-status { color:var(--green); }
-.step-content { font-size:10px; color:var(--text2); line-height:1.5; margin-left:28px; }
-.step-content pre { font-family:var(--mono); font-size:9px; background:rgba(0,0,0,0.3); border-radius:4px; padding:8px; margin-top:4px; overflow-x:auto; white-space:pre-wrap; word-break:break-word; }
-
-/* Decision card */
-.decision-card { background:rgba(129,140,248,0.04); border:1px solid rgba(129,140,248,0.15); border-radius:8px; padding:14px; margin-left:28px; margin-top:6px; }
-.dc-action { font-size:14px; font-weight:500; margin-bottom:4px; }
-.dc-params { font-family:var(--mono); font-size:9px; color:var(--text2); background:rgba(0,0,0,0.2); border-radius:4px; padding:6px; margin:6px 0; }
-.dc-reason { font-size:10px; color:var(--text2); line-height:1.5; }
-.dc-confidence { display:inline-block; padding:2px 8px; border-radius:8px; font-size:9px; font-family:var(--mono); margin-top:4px; }
-.dc-alt { font-size:9px; color:var(--text3); margin-top:6px; border-top:1px solid var(--border); padding-top:6px; }
-
-/* Empty */
-.empty { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:11px; }
+/* ── Responsive ── */
+@media(max-width:768px){
+  .hero{padding:0 6vw}
+  section{padding:60px 6vw}
+  .concept,.philosophy{grid-template-columns:1fr}
+  .features{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-<div class="app">
-  <!-- Input -->
-  <div class="input-panel">
-    <div class="panel-bar">
-      <h2>输入</h2>
-      <span class="badge badge-purple">agentic-act</span>
-    </div>
-    <div class="input-body">
-      <div class="input-group">
-        <div class="input-label">意图 (text)</div>
-        <textarea class="input-text" id="intentText" placeholder="外卖到了&#10;会议 5 分钟后开始&#10;该喝水了"></textarea>
-      </div>
-      <div class="input-group">
-        <div class="input-label">场景 (image)</div>
-        <div class="source-switch">
-          <button class="active" id="btnNone" onclick="setImageSource('none')">无</button>
-          <button id="btnCamera" onclick="setImageSource('camera')">摄像头</button>
-          <button id="btnUpload" onclick="setImageSource('upload')">上传</button>
-        </div>
-        <div class="image-area" id="imageArea" onclick="handleImageClick()">
-          <video id="camVideo" autoplay playsinline muted style="display:none"></video>
-          <img id="previewImg" style="display:none" />
-          <div class="placeholder" id="imgPlaceholder">可选：提供场景图片辅助决策</div>
-        </div>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" />
-      </div>
-      <div class="input-group">
-        <div class="input-label">配置</div>
-        <div class="cfg-row">
-          <select class="cfg-input" id="cfgProvider"><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select>
-          <input class="cfg-input" id="cfgKey" type="password" placeholder="API Key" />
-        </div>
-        <div class="cfg-row" style="margin-top:4px">
-          <input class="cfg-input" id="cfgBase" type="text" placeholder="Base URL (可选)" />
-          <input class="cfg-input" id="cfgModel" type="text" placeholder="模型 (可选)" />
-        </div>
-      </div>
-    </div>
-    <div class="input-controls">
-      <button class="btn primary" onclick="runDecide()">decide()</button>
-      <button class="btn" onclick="runRun()">run()</button>
-    </div>
-  </div>
 
-  <!-- Pipeline -->
-  <div class="pipeline-panel">
-    <div class="panel-bar"><h2>决策流程</h2><span id="pipelineStatus" class="badge badge-purple" style="display:none"></span></div>
-    <div class="pipeline-body" id="pipelineBody">
-      <div class="empty" id="pipelineEmpty">输入意图，点击 decide() 或 run()</div>
-    </div>
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge"><div class="dot"></div>agentic family</div>
+  <h1>Agentic <em>Act</em></h1>
+  <div class="subtitle">
+    AI 意图执行引擎。多模态输入，结构化行动决策。<br>
+    不负责"怎么做"，只回答"做什么"。
+  </div>
+  <div class="hero-actions">
+    <a href="demo/" class="primary">Live Demo →</a>
+    <a href="https://github.com/momomo-agent/agentic-act" class="secondary">GitHub</a>
   </div>
 </div>
 
-<script src="agentic-core.umd.js"></script>
-<script src="agentic-act.js"></script>
-<script>
-// Demo actions
-const DEMO_ACTIONS = [
-  {
-    id: 'voice-speaker',
-    name: '🔊 语音播报',
-    description: '通过智能音箱或设备扬声器语音告知。适合用户没在看屏幕、手忙着、在做饭或运动的场景',
-    schema: { content: 'string', volume: 'low|normal|high' }
-  },
-  {
-    id: 'screen-notification',
-    name: '🖥 屏幕通知',
-    description: '在最近的屏幕上弹出通知卡片。适合用户在看屏幕、专注但可接受轻量打断的场景',
-    schema: { title: 'string', body: 'string', urgency: 'low|normal|high' }
-  },
-  {
-    id: 'chat-message',
-    name: '💬 对话消息',
-    description: '在聊天界面发送消息并等待用户回应。适合需要用户确认或回复、用户当前空闲的场景',
-    schema: { message: 'string' }
-  },
-  {
-    id: 'ambient-light',
-    name: '💡 环境光提示',
-    description: '通过智能灯光颜色或亮度变化传达信息。适合不紧急、用户在房间但不想被直接打扰的场景',
-    schema: { color: 'string', pattern: 'pulse|solid|fade', duration: 'number' }
-  },
-  {
-    id: 'vibration',
-    name: '📳 震动提醒',
-    description: '通过手表或手机震动提醒。适合用户在移动中或在安静环境不适合出声的场景',
-    schema: { pattern: 'short|long|double', message: 'string' }
-  },
-  {
-    id: 'silent-queue',
-    name: '🤫 静默排队',
-    description: '不打扰，存入待办队列等用户空闲时展示。适合用户在演示、开会或明确不想被打扰的场景',
-    schema: { content: 'string', priority: 'low|normal|high' }
-  }
-];
-
-// Add demo handlers
-DEMO_ACTIONS.forEach(a => {
-  a.handler = async (params) => {
-    await new Promise(r => setTimeout(r, 500)); // simulate
-    return { delivered: true, timestamp: new Date().toISOString() };
-  };
-});
-
-let imageSource = 'none', imageBase64 = null;
-
-function setImageSource(mode) {
-  imageSource = mode;
-  document.getElementById('btnNone').classList.toggle('active', mode === 'none');
-  document.getElementById('btnCamera').classList.toggle('active', mode === 'camera');
-  document.getElementById('btnUpload').classList.toggle('active', mode === 'upload');
-
-  const video = document.getElementById('camVideo');
-  const img = document.getElementById('previewImg');
-  const ph = document.getElementById('imgPlaceholder');
-
-  if (mode === 'camera') {
-    ph.style.display = 'none'; img.style.display = 'none'; video.style.display = '';
-    navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })
-      .then(s => video.srcObject = s)
-      .catch(() => { setImageSource('none'); });
-  } else {
-    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-    video.style.display = 'none';
-    if (mode === 'upload' && imageBase64) { img.style.display = ''; ph.style.display = 'none'; }
-    else { img.style.display = 'none'; ph.style.display = ''; }
-  }
-}
-
-function handleImageClick() {
-  if (imageSource === 'upload' || imageSource === 'none') {
-    document.getElementById('fileInput').click();
-  }
-}
-
-document.getElementById('fileInput').addEventListener('change', e => {
-  if (!e.target.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const img = new Image();
-    img.onload = () => {
-      const MAX = 1280; let w = img.width, h = img.height;
-      if (w > MAX || h > MAX) { const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
-      const c = document.createElement('canvas'); c.width = w; c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
-      const compressed = c.toDataURL('image/jpeg', 0.7);
-      imageBase64 = compressed.split(',')[1];
-      document.getElementById('previewImg').src = compressed;
-      setImageSource('upload');
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(e.target.files[0]);
-});
-
-function captureImage() {
-  if (imageSource === 'camera') {
-    const v = document.getElementById('camVideo');
-    const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
-    c.getContext('2d').drawImage(v, 0, 0);
-    return c.toDataURL('image/jpeg', 0.7).split(',')[1];
-  }
-  return imageBase64;
-}
-
-function createAct() {
-  return new AgenticAct({
-    provider: document.getElementById('cfgProvider').value,
-    apiKey: document.getElementById('cfgKey').value.trim(),
-    baseUrl: document.getElementById('cfgBase').value.trim() || undefined,
-    model: document.getElementById('cfgModel').value.trim() || undefined,
-    actions: DEMO_ACTIONS
-  });
-}
-
-function buildInput() {
-  const input = {};
-  const text = document.getElementById('intentText').value.trim();
-  if (text) input.text = text;
-  const img = captureImage();
-  if (img) input.image = img;
-  return input;
-}
-
-// Pipeline rendering
-function showPipeline(steps) {
-  const body = document.getElementById('pipelineBody');
-  document.getElementById('pipelineEmpty').style.display = 'none';
-  body.innerHTML = steps.map((s, i) => `
-    <div class="step ${s.state}" id="step-${i}">
-      <div class="step-header">
-        <div class="step-num">${i + 1}</div>
-        <div class="step-title">${s.title}</div>
-        <div class="step-status">${s.status}</div>
-      </div>
-      <div class="step-content">${s.content || ''}</div>
+<!-- Core Concept -->
+<section>
+  <div class="section-label">Core Concept</div>
+  <div class="section-title">Sense → Think → Act</div>
+  <div class="concept">
+    <div class="concept-text">
+      <strong>tools 是输入扩展</strong> — AI 调外部能力来获取信息。<br><br>
+      <strong>actions 是输出扩展</strong> — AI 选外部通道来输出信息。<br><br>
+      act 是 AI 意志的<strong>投射</strong>，不是能力的延伸。输入一个意图，act 从注册的行动选项中选择最合适的一个，填好参数返回。执行是你的事。<br><br>
+      所有 AI 产品的交互方式都是固定的 — ChatGPT 永远是文字框，Siri 永远是语音。但现实中人与人的沟通方式是<strong>动态选择</strong>的：看到你在忙就发微信不打电话。act 让 AI 也能做这个判断。
     </div>
-  `).join('');
-}
+    <div class="concept-diagram">
+      <div class="flow-step">
+        <div class="flow-icon input">📝</div>
+        <div><div class="flow-label">多模态输入</div><div class="flow-desc">text / image / audio / sense / 任意字段</div></div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-icon decide">🧠</div>
+        <div><div class="flow-label">LLM 决策</div><div class="flow-desc">理解意图 + 感知环境 + 匹配 actions</div></div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-icon output">⚡</div>
+        <div><div class="flow-label">结构化输出</div><div class="flow-desc">action id + params + reason + confidence</div></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-function updateStep(idx, update) {
-  const el = document.getElementById(`step-${idx}`);
-  if (!el) return;
-  if (update.state) { el.className = `step ${update.state}`; }
-  if (update.status) { el.querySelector('.step-status').textContent = update.status; }
-  if (update.content) { el.querySelector('.step-content').innerHTML = update.content; }
-}
+<!-- Code -->
+<section class="code-section">
+  <div class="section-label">Quick Start</div>
+  <div class="section-title">Three lines to decide</div>
+  <div class="code-block"><span class="kw">const</span> act = <span class="kw">new</span> <span class="fn">AgenticAct</span>({
+  provider: <span class="str">'openai'</span>,
+  apiKey: <span class="str">'sk-...'</span>,
+  actions: [
+    {
+      id: <span class="str">'voice'</span>,
+      name: <span class="str">'语音播报'</span>,
+      description: <span class="str">'通过音箱语音告知。适合用户没在看屏幕的场景'</span>,
+      schema: { content: <span class="str">'string'</span>, volume: <span class="str">'low|normal'</span> },
+      handler: <span class="kw">async</span> (params) => speaker.<span class="fn">say</span>(params.content)
+    }
+  ]
+})
 
-async function runDecide() {
-  const act = createAct();
-  const input = buildInput();
-  if (!Object.keys(input).length) { alert('请输入意图或提供图片'); return; }
-  if (!document.getElementById('cfgKey').value.trim()) { alert('请输入 API Key'); return; }
+<span class="cmt">// 只决策</span>
+<span class="kw">const</span> decision = <span class="kw">await</span> act.<span class="fn">decide</span>({ text: <span class="str">'外卖到了'</span>, image: cameraFrame })
+<span class="cmt">// → { action: 'voice', params: { content: '外卖到楼下了', volume: 'low' } }</span>
 
-  showPipeline([
-    { title: '归一化输入', state: 'active', status: '处理中...', content: '' },
-    { title: '构建决策 Prompt', state: '', status: '等待', content: '' },
-    { title: 'LLM 决策', state: '', status: '等待', content: '' },
-    { title: '输出决策', state: '', status: '等待', content: '' }
-  ]);
+<span class="cmt">// 决策 + 执行</span>
+<span class="kw">const</span> result = <span class="kw">await</span> act.<span class="fn">run</span>({ text: <span class="str">'会议要开始了'</span> })
+<span class="cmt">// → { action: 'voice', params: {...}, executed: true }</span></div>
+</section>
 
-  // Step 1
-  await sleep(300);
-  const inputDesc = Object.keys(input).map(k => k === 'image' ? '📷 图片 (已压缩)' : `📝 ${k}: ${input[k].slice(0, 50)}`).join('<br>');
-  updateStep(0, { state: 'done', status: '✓', content: inputDesc });
+<!-- Features -->
+<section>
+  <div class="section-label">Design</div>
+  <div class="section-title">Built for intent, not implementation</div>
+  <div class="features">
+    <div class="feature-card">
+      <div class="fc-icon">🎯</div>
+      <div class="fc-title">意图驱动</div>
+      <div class="fc-desc">输入的不是"用音箱播语音"，而是"让他知道外卖到了"。怎么做，act 自己决定。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">📡</div>
+      <div class="fc-title">多模态输入</div>
+      <div class="fc-desc">text / image / audio / sensor data — 全部可选，至少一个。任意字段自动归一化。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">🔌</div>
+      <div class="fc-title">Actions 注册表</div>
+      <div class="fc-desc">声明式定义可选行动。id + name + description + schema + handler。consumer 教 act 决策。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">🧠</div>
+      <div class="fc-title">decide() / run()</div>
+      <div class="fc-desc">decide 只决策不执行。run 决策后自动调用 handler。两种模式，一个接口。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">🔗</div>
+      <div class="fc-title">agentic-core 驱动</div>
+      <div class="fc-desc">内部使用 agentic-core 调用 LLM。OpenAI / Anthropic 双 provider，vision 原生支持。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">📦</div>
+      <div class="fc-title">零依赖</div>
+      <div class="fc-desc">单文件 ~5KB。浏览器 script 标签或 Node.js require 直接用。</div>
+    </div>
+  </div>
+</section>
 
-  // Step 2
-  updateStep(1, { state: 'active', status: '构建中...' });
-  await sleep(200);
-  const actionsDesc = act.actions.map(a => `• ${a.name}`).join('<br>');
-  updateStep(1, { state: 'done', status: '✓', content: `${act.actions.length} 个注册行动：<br>${actionsDesc}` });
+<!-- Philosophy -->
+<section>
+  <div class="section-label">Philosophy</div>
+  <div class="section-title">Why act exists</div>
+  <div class="philosophy">
+    <div class="phil-card highlight">
+      <div class="phil-label">Tools vs Actions</div>
+      <div class="phil-title">输入 ↔ 输出</div>
+      <div class="phil-desc">Tools 是 AI 调外部能力来获取信息 — 搜索、查询、计算。Actions 是 AI 选择外部通道来输出信息 — 说话、通知、亮灯。方向相反，抽象对称。</div>
+    </div>
+    <div class="phil-card">
+      <div class="phil-label">Framework shapes thinking</div>
+      <div class="phil-title">框架决定思维</div>
+      <div class="phil-desc">如果把 act 当 tool 实现，developer 会想"给 AI 加个发通知的工具"。用 act，developer 会想"AI 该怎么跟人说话"。前者是能力视角，后者是意图视角。</div>
+    </div>
+  </div>
+</section>
 
-  // Step 3
-  updateStep(2, { state: 'active', status: '请求中...' });
-  const t0 = Date.now();
-  const decision = await act.decide(input);
-  const elapsed = Date.now() - t0;
-  updateStep(2, { state: 'done', status: `✓ ${elapsed}ms`, content: `模型: ${act.model}` });
+<!-- Agentic Family -->
+<section>
+  <div class="section-label">Ecosystem</div>
+  <div class="section-title">Part of the agentic family</div>
+  <div class="features" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    <div class="feature-card"><div class="fc-icon">🧠</div><div class="fc-title">agentic-core</div><div class="fc-desc">LLM 调用引擎 + vision</div></div>
+    <div class="feature-card"><div class="fc-icon">👁</div><div class="fc-title">agentic-sense</div><div class="fc-desc">人脸/注意力/表情感知</div></div>
+    <div class="feature-card" style="border-color:rgba(129,140,248,0.2);background:rgba(129,140,248,0.02)"><div class="fc-icon">⚡</div><div class="fc-title">agentic-act</div><div class="fc-desc">意图执行引擎</div></div>
+    <div class="feature-card"><div class="fc-icon">🎨</div><div class="fc-title">agentic-render</div><div class="fc-desc">动态 UI 生成</div></div>
+    <div class="feature-card"><div class="fc-icon">💾</div><div class="fc-title">agentic-memory</div><div class="fc-desc">持久记忆</div></div>
+  </div>
+</section>
 
-  // Step 4
-  updateStep(3, { state: 'active', status: '解析中...' });
-  await sleep(200);
+<!-- Footer -->
+<footer>
+  <div class="logo">agentic-act</div>
+  <div class="links">
+    <a href="demo/">Demo</a>
+    <a href="https://github.com/momomo-agent/agentic-act">GitHub</a>
+    <a href="https://github.com/momomo-agent">momomo-agent</a>
+  </div>
+</footer>
 
-  const actionDef = act.actions.find(a => a.id === decision.action);
-  const confColor = (decision.confidence || 0) > 0.7 ? 'var(--green)' : 'var(--warm)';
-
-  let decisionHtml = `<div class="decision-card">
-    <div class="dc-action">${actionDef?.name || decision.action || '未知'}</div>
-    <div class="dc-params">${JSON.stringify(decision.params, null, 2)}</div>
-    <div class="dc-reason">${decision.reason || ''}</div>
-    <span class="dc-confidence" style="color:${confColor};background:${confColor}15;border:1px solid ${confColor}30">置信度 ${((decision.confidence || 0) * 100).toFixed(0)}%</span>`;
-
-  if (decision.alternative) {
-    const altDef = act.actions.find(a => a.id === decision.alternative.action);
-    decisionHtml += `<div class="dc-alt">备选: ${altDef?.name || decision.alternative.action} — ${decision.alternative.reason}</div>`;
-  }
-  decisionHtml += '</div>';
-
-  updateStep(3, { state: 'done', status: '✓ decide 完成', content: decisionHtml });
-}
-
-async function runRun() {
-  const act = createAct();
-  const input = buildInput();
-  if (!Object.keys(input).length) { alert('请输入意图或提供图片'); return; }
-  if (!document.getElementById('cfgKey').value.trim()) { alert('请输入 API Key'); return; }
-
-  showPipeline([
-    { title: '归一化输入', state: 'active', status: '处理中...', content: '' },
-    { title: '构建决策 Prompt', state: '', status: '等待', content: '' },
-    { title: 'LLM 决策', state: '', status: '等待', content: '' },
-    { title: '输出决策', state: '', status: '等待', content: '' },
-    { title: '执行 Handler', state: '', status: '等待', content: '' }
-  ]);
-
-  await sleep(300);
-  const inputDesc = Object.keys(input).map(k => k === 'image' ? '📷 图片' : `📝 ${k}: ${input[k].slice(0, 50)}`).join('<br>');
-  updateStep(0, { state: 'done', status: '✓', content: inputDesc });
-
-  updateStep(1, { state: 'active', status: '构建中...' });
-  await sleep(200);
-  updateStep(1, { state: 'done', status: '✓', content: `${act.actions.length} 个注册行动` });
-
-  updateStep(2, { state: 'active', status: '请求中...' });
-  const t0 = Date.now();
-  const result = await act.run(input);
-  const elapsed = Date.now() - t0;
-  updateStep(2, { state: 'done', status: `✓ ${elapsed}ms` });
-
-  const actionDef = act.actions.find(a => a.id === result.action);
-  const confColor = (result.confidence || 0) > 0.7 ? 'var(--green)' : 'var(--warm)';
-  let decisionHtml = `<div class="decision-card">
-    <div class="dc-action">${actionDef?.name || result.action || '未知'}</div>
-    <div class="dc-params">${JSON.stringify(result.params, null, 2)}</div>
-    <div class="dc-reason">${result.reason || ''}</div>
-    <span class="dc-confidence" style="color:${confColor};background:${confColor}15;border:1px solid ${confColor}30">${((result.confidence||0)*100).toFixed(0)}%</span>
-  </div>`;
-  updateStep(3, { state: 'done', status: '✓', content: decisionHtml });
-
-  updateStep(4, { state: 'active', status: '执行中...' });
-  await sleep(300);
-  if (result.executed) {
-    updateStep(4, { state: 'done', status: '✓ 已执行', content: `<pre>${JSON.stringify(result.output, null, 2)}</pre>` });
-  } else {
-    updateStep(4, { state: '', status: result.error || '无 handler', content: '该 action 未注册执行方法' });
-  }
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// Persist
-['cfgKey','cfgBase','cfgModel'].forEach(id => {
-  const el = document.getElementById(id);
-  el.value = localStorage.getItem('act_'+id) || '';
-  el.addEventListener('change', () => localStorage.setItem('act_'+id, el.value));
-});
-document.getElementById('cfgProvider').value = localStorage.getItem('act_provider') || 'openai';
-document.getElementById('cfgProvider').addEventListener('change', e => localStorage.setItem('act_provider', e.target.value));
-</script>
 </body>
 </html>
