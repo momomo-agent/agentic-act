@@ -1,0 +1,14 @@
+{
+  "name": "agentic-act",
+  "version": "0.1.0",
+  "description": "Browser automation for AI agents — clicks, types, screenshots. Zero dependencies.",
+  "main": "agentic-act.js",
+  "browser": "agentic-act.js",
+  "files": ["agentic-act.js", "README.md"],
+  "keywords": ["agent", "browser", "automation", "playwright", "zero-dependency"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momomo-agent/agentic-act.git"
+  }
+}

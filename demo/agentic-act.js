@@ -1,3 +1,10 @@
+;(function(root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory()
+  else if (typeof define === 'function' && define.amd) define(factory)
+  else { var e = factory(); for (var k in e) root[k] = e[k] }
+})(typeof globalThis !== 'undefined' ? globalThis : typeof self !== 'undefined' ? self : this, function() {
+  'use strict'
+
 /**
  * agentic-act — AI 意图执行引擎
  * 
@@ -199,10 +206,5 @@ ${routingGuidance}
   }
 }
 
-// ── Exports ──
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { AgenticAct };
-}
-if (typeof window !== 'undefined') {
-  window.AgenticAct = AgenticAct;
-}
+  return { AgenticAct }
+})
