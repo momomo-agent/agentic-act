@@ -1,20 +1,9 @@
-/**
- * agentic-core — AI agent engine
- * Zero dependencies. LLM calls + Agent Loop + Tool execution + Loop detection.
- * UMD build — works with <script>, CommonJS, and AMD.
- *
- * Usage (browser):  <script src="agentic-core.umd.js"></script>
- *   AgenticCore.agenticAsk('hello', { apiKey: '...', provider: 'anthropic' }, console.log)
- *
- * Usage (Node):  const { agenticAsk } = require('./agentic-core.umd.js')
- */
-;(function (root, factory) {
+;(function(root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory()
   else if (typeof define === 'function' && define.amd) define(factory)
-  else { var f = factory(); root.AgenticCore = f; root.AgenticAgent = f }
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
-
-// ── Loop Detection (inlined) ──
+  else { var e = factory(); root.AgenticCore = e; for (var k in e) root[k] = e[k] }
+})(typeof globalThis !== 'undefined' ? globalThis : typeof self !== 'undefined' ? self : this, function() {
+  'use strict'
 
 // loop-detection.js — 完全对齐 OpenClaw tool-loop-detection.ts
 // 浏览器端实现（无 node:crypto，用简单哈希替代）
@@ -297,9 +286,6 @@ function recordToolCallOutcome(state, toolName, params, result, error) {
   }
 }
 
-
-// ── Agent Core ──
-
 // agentic-agent.js - 前端 Agent Loop
 // 完全端侧运行，通过可配置的 proxy 调用 LLM
 // 支持流式输出 (stream) + 智能循环检测（对齐 OpenClaw）
@@ -383,16 +369,7 @@ async function _agenticAsk(prompt, config, emit) {
     
     // Execute tools
     console.log(`[Round ${round}] Executing ${response.tool_calls.length} tool calls...`)
-    // Normalize tool_calls to OpenAI format for multi-round consistency
-    const normalizedCalls = response.tool_calls.map(tc => ({
-      id: tc.id,
-      type: 'function',
-      function: { name: tc.name, arguments: JSON.stringify(tc.input || {}) },
-      // Keep original fields for internal use
-      name: tc.name,
-      input: tc.input,
-    }))
-    messages.push({ role: 'assistant', content: response.content, tool_calls: normalizedCalls })
+    messages.push({ role: 'assistant', content: response.content, tool_calls: response.tool_calls })
     
     for (const call of response.tool_calls) {
       console.log(`[Round ${round}] Tool: ${call.name}, Input:`, JSON.stringify(call.input).slice(0, 100))
@@ -940,7 +917,6 @@ function validateSchema(data, schema) {
   
   return { valid: true }
 }
-
 
   return { agenticAsk }
 })
